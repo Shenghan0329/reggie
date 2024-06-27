@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.John.reggie.Common.R;
@@ -52,7 +53,7 @@ public class DishController {
     public R<Page> page(int page, int pageSize, String name){
         log.info("page = {}, pageSize = {}, name = {}",page,pageSize,name);
 
-        // Get Employees
+        // Get Dishes
         // Page
         Page<Dish> p = new Page<>(page,pageSize);
         Page<DishDto> dtoP = new Page<>();
@@ -99,5 +100,16 @@ public class DishController {
         log.info(dish.toString());
         dishService.updateWithFlavor(dish);
         return R.success("DISH UPDATED");
+    }
+
+    @GetMapping("/list")
+    public R<List<Dish>> getByCategoryId(@RequestParam Long categoryId){
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dish::getCategoryId,categoryId);
+        // Dish should be on stock
+        queryWrapper.eq(Dish::getStatus,1);
+        queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+        List<Dish> list = dishService.list(queryWrapper);
+        return R.success(list);
     }
 }
