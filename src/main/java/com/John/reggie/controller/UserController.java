@@ -16,6 +16,7 @@ import com.John.reggie.utils.ValidateCodeUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import io.micrometer.common.util.StringUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,5 +72,9 @@ public class UserController {
 
         return R.error("Login Fail");
     }
-
+    @PostMapping("/loginout")
+    public R<String> logout(HttpServletRequest req){
+        req.getSession().removeAttribute("user");
+        return R.success("Logout Success");
+    }
 }
