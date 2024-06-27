@@ -25,7 +25,9 @@ public class LoginCheckFilter implements Filter{
         "/employee/login",
         "/employee/logout",
         "/backend/**",
-        "/frontend/**"
+        "/front/**",
+        "/user/sendMsg",
+        "/user/login"
     };
 
     @Override
@@ -44,6 +46,8 @@ public class LoginCheckFilter implements Filter{
             // log.info("LOGIN NO NEED");
             return;
         }
+
+        // Employee
         Long currId = (Long) req.getSession().getAttribute("employee");
         if(currId != null){
             // Store id in thread
@@ -52,6 +56,17 @@ public class LoginCheckFilter implements Filter{
             // log.info("ALREADY LOGIN, ID = {}",req.getSession().getAttribute("employee"));
             return;
         }
+
+        // User
+        Long currIdUser = (Long) req.getSession().getAttribute("user");
+        if(currIdUser != null){
+            // Store id in thread
+            BaseContext.setCurrentId(currIdUser);
+            chain.doFilter(req, res);
+            // log.info("ALREADY LOGIN, ID = {}",req.getSession().getAttribute("employee"));
+            return;
+        }
+
         res.getWriter().write(JSON.toJSONString(R.error("NOTLOGIN")));
         log.info("LOGIN REQUIRED");
         return;

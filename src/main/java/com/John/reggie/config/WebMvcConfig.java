@@ -23,8 +23,8 @@ public class WebMvcConfig extends WebMvcConfigurationSupport{
             .addResourceHandler("/backend/**")
             .addResourceLocations("classpath:/backend/");
         registry
-            .addResourceHandler("/frontend/**")
-            .addResourceLocations("classpath:/frontend/");
+            .addResourceHandler("/front/**")
+            .addResourceLocations("classpath:/front/");
         log.info("Static resource mapping success");
     }
 
