@@ -96,6 +96,7 @@
 #user .divLinks .item {
   height: 51rem;
   line-height: 51rem;
+  font-size:14rem;
   position: relative;
   display: flex;
   align-items: center;

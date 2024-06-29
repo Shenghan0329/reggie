@@ -11,18 +11,24 @@ import com.John.reggie.dto.DishDto;
 import com.John.reggie.entity.Dish;
 import com.John.reggie.entity.DishFlavor;
 import com.John.reggie.mapper.DishMapper;
+import com.John.reggie.service.CategoryService;
 import com.John.reggie.service.DishFlavorService;
 import com.John.reggie.service.DishService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements DishService{
 
     @Autowired
     private DishFlavorService dishFlavorService;
+    // @Autowired
+    // private CategoryService categoryService;
+
     @Override
     @Transactional
     public void saveWithFlavor(DishDto dish) {
@@ -73,4 +79,30 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
 
         dishFlavorService.saveBatch(dishFlavors);
     }
+
+    @Override
+    public List<DishDto> getWithFlavor(List<Dish> dish) {
+        List<DishDto> list = dish.stream().map((item)->{
+            DishDto dto = new DishDto();
+            BeanUtils.copyProperties(item, dto);
+            Long dishId = item.getId();
+
+            // Get Flavors
+            LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(DishFlavor::getDishId,dishId);
+            List<DishFlavor> flavors = dishFlavorService.list(queryWrapper);
+            dto.setFlavors(flavors);
+
+            // // Get Category Name
+            // Long categoryId = item.getCategoryId();
+            // String categoryName = categoryService.getById(categoryId).getName();
+            // dto.setCategoryName(categoryName);
+            
+            return dto;
+        }).collect(Collectors.toList());
+
+        return list;
+    }
+
+    
 }

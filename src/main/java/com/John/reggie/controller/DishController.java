@@ -103,13 +103,15 @@ public class DishController {
     }
 
     @GetMapping("/list")
-    public R<List<Dish>> getByCategoryId(@RequestParam Long categoryId){
+    public R<List<DishDto>> getByCategoryId(@RequestParam(required = false) Long categoryId){
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Dish::getCategoryId,categoryId);
+        if(categoryId != null) 
+            queryWrapper.eq(Dish::getCategoryId,categoryId);
         // Dish should be on stock
         queryWrapper.eq(Dish::getStatus,1);
         queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
         List<Dish> list = dishService.list(queryWrapper);
-        return R.success(list);
+        List<DishDto> dtoList = dishService.getWithFlavor(list);
+        return R.success(dtoList);
     }
 }

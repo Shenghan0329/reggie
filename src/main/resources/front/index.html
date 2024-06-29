@@ -272,7 +272,7 @@
             },
             goodsPrice(){
               let price = 0
-              this.cartData.forEach(item=>{
+              this.cartData?.forEach(item=>{
                 price += (item.number * item.amount)
               })
               return price
@@ -463,7 +463,6 @@
                     dish.number = res.data.number
                   }
                 })
-                console.log(this.dishList)
                 this.getCartData()
               }else{
                 this.$notify({ type:'warning', message:res.msg});
@@ -552,7 +551,7 @@
                   price:dialogFlavor.price,
                   dishFlavor:dishFlavor.join(","),
                   id:dialogFlavor.dishId,
-                  flavors:[],
+                  flavors:dialogFlavor.flavors,
                   image:dialogFlavor.image,
                   name:dialogFlavor.name
                 })
@@ -588,7 +587,7 @@
                 //显示套餐的数据
                 const res = await setMealDishDetailsApi(item.id)
                 if(res.code === 1){
-                  this.setMealDialog.item = {...item,list:res.data}
+                  this.setMealDialog.item = {...item,...res.data}
                   this.setMealDialog.show = true
                 }else{
                   this.$notify({ type:'warning', message:res.msg});

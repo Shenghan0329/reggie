@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.John.reggie.Common.R;
+import com.John.reggie.dto.DishDto;
 import com.John.reggie.dto.SetmealDto;
 import com.John.reggie.entity.Category;
+import com.John.reggie.entity.Dish;
 import com.John.reggie.entity.Setmeal;
 import com.John.reggie.entity.SetmealDish;
 import com.John.reggie.service.CategoryService;
@@ -82,7 +84,7 @@ public class SetmealController {
         return R.success(dtoP);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value={"/{id}","/dish/{id}"})
     public R<SetmealDto> getById(@PathVariable Long id){
         SetmealDto setmeal = setmealService.getByIdWithDishes(id);
         return R.success(setmeal);
@@ -109,5 +111,17 @@ public class SetmealController {
         meal.setStatus(status);
         setmealService.update(meal,queryWrapper);
         return R.success("Update status success");
+    }
+
+    @GetMapping("/list")
+    public R<List<Setmeal>> getByCategoryId(@RequestParam(required = false) Long categoryId){
+        LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
+        if(categoryId != null) 
+            queryWrapper.eq(categoryId!=null, Setmeal::getCategoryId,categoryId);
+        // Dish should be on stock
+        queryWrapper.eq(Setmeal::getStatus,1);
+        queryWrapper.orderByDesc(Setmeal::getUpdateTime);
+        List<Setmeal> list = setmealService.list(queryWrapper);
+        return R.success(list);
     }
 }
