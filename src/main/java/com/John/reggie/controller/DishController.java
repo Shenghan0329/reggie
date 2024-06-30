@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +20,6 @@ import com.John.reggie.Common.R;
 import com.John.reggie.dto.DishDto;
 import com.John.reggie.entity.Category;
 import com.John.reggie.entity.Dish;
-import com.John.reggie.entity.Employee;
 import com.John.reggie.service.CategoryService;
 import com.John.reggie.service.DishFlavorService;
 import com.John.reggie.service.DishService;
@@ -27,7 +27,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -36,8 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 public class DishController {
     @Autowired
     private DishService dishService;
-    @Autowired
-    private DishFlavorService dishFlavorService;
     @Autowired
     private CategoryService categoryService;
 
@@ -113,5 +110,22 @@ public class DishController {
         List<Dish> list = dishService.list(queryWrapper);
         List<DishDto> dtoList = dishService.getWithFlavor(list);
         return R.success(dtoList);
+    }
+
+    @DeleteMapping
+    public R<String> delete(@RequestParam List<Long> ids){
+        dishService.deleteByIdWithFlavors(ids);
+        return R.success("Delete Setmeals Success");
+    }
+
+    // Set in/out stock
+    @PostMapping("/status/{status}")
+    public R<String> setStatus(@RequestParam List<Long> ids, @PathVariable("status") int status){
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(Dish::getId,ids);
+        Dish meal = new Dish();
+        meal.setStatus(status);
+        dishService.update(meal,queryWrapper);
+        return R.success("Update status success");
     }
 }

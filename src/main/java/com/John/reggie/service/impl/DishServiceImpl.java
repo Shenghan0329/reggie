@@ -7,21 +7,19 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.John.reggie.Common.CustomException;
 import com.John.reggie.dto.DishDto;
 import com.John.reggie.entity.Dish;
 import com.John.reggie.entity.DishFlavor;
 import com.John.reggie.mapper.DishMapper;
-import com.John.reggie.service.CategoryService;
 import com.John.reggie.service.DishFlavorService;
 import com.John.reggie.service.DishService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements DishService{
 
     @Autowired
@@ -102,6 +100,26 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         }).collect(Collectors.toList());
 
         return list;
+    }
+
+    @Override
+    @Transactional
+    public void deleteByIdWithFlavors(List<Long> ids) {
+        // Cannot delete if on stock
+        LambdaQueryWrapper<Dish> qWrapper = new LambdaQueryWrapper<>();
+        qWrapper.in(Dish::getId,ids);
+        qWrapper.eq(Dish::getStatus,1);
+        Long count = this.count(qWrapper);
+        if(count > 0) 
+            throw new CustomException("Dish on stock, cannot delete");
+        
+        // Delete items
+        this.removeByIds(ids);
+
+        // delete related dishes
+        LambdaQueryWrapper<DishFlavor> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(DishFlavor::getDishId,ids);
+        dishFlavorService.remove(queryWrapper);
     }
 
     

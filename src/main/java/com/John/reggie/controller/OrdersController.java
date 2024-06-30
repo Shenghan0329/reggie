@@ -1,10 +1,13 @@
 package com.John.reggie.controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +25,8 @@ import com.John.reggie.service.OrdersService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/order")
 public class OrdersController{
@@ -37,14 +42,26 @@ public class OrdersController{
     }
 
     @SuppressWarnings("rawtypes")
-    @GetMapping("/userPage")
-    public R<Page> page(int page, int pageSize){
-        Long userId = BaseContext.getCurrentId();
-
+    @GetMapping(value = {"/userPage","/page"})
+    public R<Page> page(int page, int pageSize, Long number, String beginTime, String endTime,HttpServletRequest req){
         Page<Orders> p = new Page<>(page,pageSize);
 
         LambdaQueryWrapper<Orders> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Orders::getUserId,userId);
+        if(req.getRequestURL().toString().contains("user")){
+            Long userId = BaseContext.getCurrentId();
+            queryWrapper.eq(Orders::getUserId,userId);
+        }
+        if(beginTime!=null){
+            beginTime = beginTime.replace(" ", "T");
+            LocalDateTime start = LocalDateTime.parse(beginTime);
+            queryWrapper.ge(beginTime!=null,Orders::getOrderTime,start);
+        }
+        if(endTime!=null){
+            endTime = endTime.replace(" ", "T");
+            LocalDateTime end = LocalDateTime.parse(endTime);
+            queryWrapper.le(endTime!=null,Orders::getOrderTime,end);
+        }
+        queryWrapper.eq(number!=null,Orders::getId,number);
         queryWrapper.orderByDesc(Orders::getCheckoutTime);
         ordersService.page(p,queryWrapper);
 
