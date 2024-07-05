@@ -1,8 +1,10 @@
 package com.John.reggie.controller;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,7 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 public class UserController {
     @Autowired
     private UserService userService;
+    @SuppressWarnings("rawtypes")
+    @Autowired
+    private RedisTemplate redisTemplate;
 
+    @SuppressWarnings("unchecked")
     @PostMapping("/sendMsg")
     public R<String> sendMsg(@RequestBody User user, HttpSession session){
         // Get phone number
@@ -37,21 +43,32 @@ public class UserController {
             log.info(code);
             // // Send Message
             // SMSUtils.sendMessage(code, code, phone, code);
-            // Store Message into Session
-            session.setAttribute(phone, code);
+
+            // // Store Message into Session
+            // session.setAttribute(phone, code);
+
+            // Store message in redis
+            redisTemplate.opsForValue().set(phone,code,5,TimeUnit.MINUTES);
+            
             return R.success("SMS Success");
         }
         return R.error("SMS Fail");
     }
 
+    @SuppressWarnings("unchecked")
     @PostMapping("/login")
     public R<User> login(@SuppressWarnings("rawtypes") @RequestBody Map map, HttpSession session){
         // Get phone number
         String phone = map.get("phone").toString();
         // Get code from map
         String code = map.get("code").toString();
-        // Get code from local session
-        Object codeInSession = session.getAttribute(phone);
+
+        // // Get code from local session
+        // Object codeInSession = session.getAttribute(phone);
+
+        // Get code from redis
+        Object codeInSession = redisTemplate.opsForValue().get(phone);
+        
         // Determine if they match
         if(codeInSession != null && codeInSession.equals(code)){
             // If match, login success
@@ -67,6 +84,8 @@ public class UserController {
                 userService.save(user);
             }
             session.setAttribute("user", user.getId());
+            // Delete code from redis
+            redisTemplate.delete(phone);
             return R.success(user);
         }
 

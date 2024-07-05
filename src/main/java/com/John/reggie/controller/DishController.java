@@ -1,11 +1,14 @@
 package com.John.reggie.controller;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,11 +40,17 @@ public class DishController {
     private DishService dishService;
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @PostMapping
     public R<String> save(@RequestBody DishDto dish){
         log.info(dish.toString());
         dishService.saveWithFlavor(dish);
+        // Clear memory
+        Set keys = redisTemplate.keys("dish_"+dish.getCategoryId()+"_");
+        redisTemplate.delete(keys);
         return R.success("DISH ADDED");
     }
 
@@ -68,7 +77,6 @@ public class DishController {
 
         // Convert Dishes to correct format
         List<DishDto> list = records.stream().map((item)->{
-
             DishDto dishDto = new DishDto();
             BeanUtils.copyProperties(item, dishDto);
 
@@ -92,15 +100,34 @@ public class DishController {
         DishDto dishDto = dishService.getByIdWithFlavor(id);
         return R.success(dishDto);
     }
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @PutMapping
     public R<String> update(@RequestBody DishDto dish){
         log.info(dish.toString());
         dishService.updateWithFlavor(dish);
+        // Clear memory
+        Set keys = redisTemplate.keys("dish_*");
+        redisTemplate.delete(keys);
         return R.success("DISH UPDATED");
     }
 
+    @SuppressWarnings("unchecked")
     @GetMapping("/list")
-    public R<List<DishDto>> getByCategoryId(@RequestParam(required = false) Long categoryId){
+    public R<List<DishDto>> getByCategoryId(Dish dish){
+        List<DishDto> dtoList = null;
+
+        Long categoryId = dish.getCategoryId();
+        // Get data from redis
+        String key = "dish_" + categoryId + "_" + dish.getStatus();
+        dtoList = (List<DishDto>) redisTemplate.opsForValue().get(key);
+
+        // If exist, return
+        if(dtoList != null){
+            System.out.println("Fetched memory");
+            return R.success(dtoList);
+        }
+
+        // If not exist, query database
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         if(categoryId != null) 
             queryWrapper.eq(Dish::getCategoryId,categoryId);
@@ -108,7 +135,11 @@ public class DishController {
         queryWrapper.eq(Dish::getStatus,1);
         queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
         List<Dish> list = dishService.list(queryWrapper);
-        List<DishDto> dtoList = dishService.getWithFlavor(list);
+        dtoList = dishService.getWithFlavor(list);
+
+        // if not exist, save to redis
+        redisTemplate.opsForValue().set(key,dtoList, 60, TimeUnit.MINUTES);
+
         return R.success(dtoList);
     }
 
