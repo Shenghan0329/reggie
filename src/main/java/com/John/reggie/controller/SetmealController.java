@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +41,7 @@ public class SetmealController {
     private CategoryService categoryService;
 
     @PostMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> save(@RequestBody SetmealDto setmeal){
         setmealService.saveWithDish(setmeal);
         return R.success("ADD SETMEAL SUCCESS");
@@ -97,6 +100,7 @@ public class SetmealController {
     }
 
     @DeleteMapping
+    @CacheEvict(value = "setmealCache", allEntries = true)
     public R<String> delete(@RequestParam List<Long> ids){
         setmealService.deleteByIdWithDishes(ids);
         return R.success("Delete Setmeals Success");
@@ -114,7 +118,9 @@ public class SetmealController {
     }
 
     @GetMapping("/list")
-    public R<List<Setmeal>> getByCategoryId(@RequestParam(required = false) Long categoryId){
+    @Cacheable(value = "setmealCache", key = "#setmeal.categoryId + '_' + #setmeal.status")
+    public R<List<Setmeal>> getByCategoryId(Setmeal setmeal){
+        Long categoryId = setmeal.getCategoryId();
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         if(categoryId != null) 
             queryWrapper.eq(categoryId!=null, Setmeal::getCategoryId,categoryId);
