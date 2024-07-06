@@ -239,3 +239,12 @@
   color: #333333;
   line-height: 50rem;
 }
+
+#user #address_edit .divContent .divSave {
+  width: 50%;
+  display: inline-block;
+}
+#user #address_edit .divContent .divDelete {
+  width: 50%;
+  display: inline-block;
+}

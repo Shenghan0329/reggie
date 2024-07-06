@@ -5,7 +5,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -95,5 +98,19 @@ public class UserController {
     public R<String> logout(HttpServletRequest req){
         req.getSession().removeAttribute("user");
         return R.success("Logout Success");
+    }
+    @GetMapping("/{phone}")
+    public R<User> getByPhone(@PathVariable String phone){
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getPhone,phone);
+        User user = userService.getOne(queryWrapper);
+        return R.success(user);
+    }
+    @PutMapping
+    public R<String> update(@RequestBody User user){
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getPhone,user.getPhone());
+        userService.update(user,queryWrapper);
+        return R.success("Update User Success");
     }
 }

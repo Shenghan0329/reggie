@@ -13,6 +13,8 @@
     <!--引入vant样式-->
     <link rel="stylesheet" href="../styles/vant.min.css"/>
     <!--本页面内容的样式-->
+    <link rel="stylesheet" href="./../styles/address-edit.css" />
+    <!--本页面内容的样式-->
     <link rel="stylesheet" href="./../styles/user.css" />
 </head>
 <body>
@@ -23,9 +25,31 @@
             </div>
             <div class="divUser">
                 <img src="./../images/headPage.png"/>
-                <div class="desc">
-                    <div class="divName">林之迷 <img src="./../images/women.png"/></div>
-                    <div class="divPhone">{{userPhone}}</div>
+                <div class="desc"  v-if="!updateFlag" @click="updateFlag=true">
+                    <div class="divName">{{this.user.name?user.name:'momo'}}<img src="./../images/women.png"/></div>
+                    <div class="divPhone">{{this.user.phone}}</div>
+                </div>
+                <div id="address_edit" style="border-radius: 8px !important;
+                    overflow: hidden !important;
+                z-index: 2;">
+                <div class="divContent" v-if="updateFlag">
+                        <div class="divItem">
+                            <span>姓名：</span> 
+                            <el-input placeholder=" 请填写您的姓名" v-model="form.name"  maxlength='20' style="width: calc(100% - 80rem);"/></el-input>
+                            <span class="spanChecked" @click="form.sex = '1'">
+                                <i :class="{iActive:form.sex === '1'}"></i>
+                                男
+                            </span>
+                            <span class="spanChecked" @click="form.sex = '0'">
+                                <i :class="{iActive:form.sex === '0'}"></i>
+                                女
+                            </span>
+                        </div>
+                        <div>
+                        <div style="width:49%;" class="divSave" @click="saveUser">保存</div>
+                        <div style="width:49%;" class="divDelete" @click="updateFlag=false">取消</div>
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -82,16 +106,23 @@
     <script src="./../js/request.js"></script>
     <script src="./../api/order.js"></script>
     <script src="./../api/login.js"></script>
+    <script src="./../api/user.js"></script>
     <script>
         new Vue({
             el:"#user",
             data(){
                 return {
+                    user:{
+                        name:"",
+                        phone:"",
+                        sex:0
+                    },
                     form:{
-                        phone:'',
-                        code:''
+                        name:"",
+                        sex:0
                     },
                     msgFlag:false,
+                    updateFlag:false,
                     order:[{
                         orderTime:'',//下单时间
                         status:undefined,//订单状态 1已结账，2未结账，3已退单，4已完成，5已取消
@@ -106,7 +137,7 @@
             },
             computed:{},
             created(){
-                this.userPhone =sessionStorage.getItem("userPhone")
+                this.user.phone =sessionStorage.getItem("userPhone")
                 this.initData()
             },
             mounted(){},
@@ -125,6 +156,7 @@
                     }) 
                 },
                 initData(){
+                    this.user = this.getUser(this.user.phone)
                     this.getLatestOrder()
                 },
                 async getLatestOrder(){
@@ -144,6 +176,33 @@
                         }
                     }else{
                         this.$notify({ type:'warning', message:res.msg});
+                    }
+                },
+                async getUser(phone){
+                    const res = await findUser(phone)
+                    if(res.code === 1){
+                        this.user = res.data
+                        if(this.user?.name){
+                            console.log("Welcome Back")
+                        }else{
+                            console.log("Welcome")
+                        }
+                    }else{
+                        this.$notify({ type:'warning', message:res.msg});
+                    }
+                },
+                async saveUser(){
+                    if(!this.user.phone) {return}
+                    const form = {...this.form,phone:this.user.phone}
+                    let res= {}
+                    console.log(this.form)
+                    res = await updateUser(form)
+                    if(res.code === 1){
+                        this.updateFlag = false
+                        this.user = {...form}
+                    }else{
+                        this.$notify({ type:'warning', message:res.msg});
+                        this.updateFlag = false
                     }
                 },
                 getStatus(status){
