@@ -47,8 +47,8 @@
             data(){
                 return {
                     form:{
-                        phone:'',
-                        code:''
+                        phone:'15211111111',
+                        code:'1111'
                     },
                     msgFlag:false,
                     loading:false
@@ -75,7 +75,10 @@
                         const res = await loginApi({phone:this.form.phone, code:this.form.code})
                         this.loading = false
                         if(res.code === 1){
-                            sessionStorage.setItem("userPhone",this.form.phone)
+                            // sessionStorage.setItem("userPhone",this.form.phone)
+
+                            // For Demo
+                            sessionStorage.setItem("userPhone","15211111111")
                             window.requestAnimationFrame(()=>{
                                 window.location.href= '/front/index.html'
                             })                           
