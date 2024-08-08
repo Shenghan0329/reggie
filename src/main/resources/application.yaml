@@ -9,9 +9,9 @@ spring:
       ddl-auto: update
     show-sql: true
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/Reggie
-    username: john
-    password: csh020329@
+    url: jdbc:mysql://sql5.freesqldatabase.com:3306/sql5724772
+    username: sql5724772
+    password: s4L7e3vG8c
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
