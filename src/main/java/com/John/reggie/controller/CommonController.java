@@ -63,8 +63,9 @@ public class CommonController {
     @GetMapping("/download")
     public void download(String name, HttpServletResponse res){
         try {
-            String p = path;
-            FileInputStream fileInputStream = new FileInputStream(new File(p+name));
+            String p = "reggie_images/";
+            File f = new File(p+name);
+            FileInputStream fileInputStream = new FileInputStream(f);
             ServletOutputStream outputStream = res.getOutputStream();
 
             res.setContentType("img/jpeg");
