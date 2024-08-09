@@ -5,9 +5,11 @@
 This is a delivery application designed to manage and track delivery operations. The application consists of a mobile order app and a admin management backend. The frontend is built with Vue, and backend is powered by Spring Boot, MyBatis, and MySQL. It provides features such as order management, delivery status tracking, and user authentication.
 
 ## Images
-
+[Admin panel](https://reggie-egyg.onrender.com/backend/index.html)
 <img src="/src/main/resources/backend/images/readme/back.png" width="60%"/>
+[User App](https://reggie-egyg.onrender.com/front/index.html)
 <img src="/src/main/resources/backend/images/readme/front.png" width="20%"/>
+<b>The links are slow due to limitations of the free server</b>
 
 ## Features
 
