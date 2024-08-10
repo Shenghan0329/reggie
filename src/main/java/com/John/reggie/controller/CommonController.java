@@ -36,8 +36,7 @@ public class CommonController {
     @PostMapping("/upload")
     public R<String> upload(MultipartFile file){
         log.info(file.toString());
-        String p = path;
-        System.out.println("Path: "+p);
+        String p = "reggie_images/";
 
         String originalName = file.getOriginalFilename();
         String name = UUID.randomUUID().toString()
