@@ -15,10 +15,16 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: localhost
+      # host: localhost
+      # port: 6379
+      # password: csh020329@
+      host: oregon-redis.render.com
       port: 6379
-      password: csh020329@
-      database: 0 #操作的是0号数据库
+      username: red-cqrbqs08fa8c73d24180
+      password: hdwTbLxWSKa3XeQx0quMuEFei50kGuFN
+      ssl:
+        enabled: true
+      # database: 0 #操作的是0号数据库
       jedis:
         #Redis连接池配置
         pool:
